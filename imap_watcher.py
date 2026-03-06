@@ -16,6 +16,19 @@ CHECK_FOLDER = "INBOX"
 body_pattern = r"Tenant Tenant (\S+) terminó su ejecución (.*)"
 subject_pattern = r"Descuadres en el saldo de vacaciones"
 
+STATUS_KEYWORDS = [
+    ("forced", "forzadamente"),
+    ("failed", "errores"),
+    ("success", "exitosamente"),
+]
+
+
+def resolve_status(text: str) -> str:
+    for status, keyword in STATUS_KEYWORDS:
+        if keyword in text:
+            return status
+    return "desconocido"
+
 last_uid = None
 
 
@@ -40,15 +53,14 @@ def parse_email(subject, body):
     m = re.search(body_pattern, body)
 
     if m:
-        status = "error" if "errores" in m.group(2) else "success"
-        return {"tenant": m.group(1), "status": status}
+        return {"tenant": m.group(1), "status": resolve_status(m.group(2))}
 
     # Fallback: detect via subject, extract tenant from body with a looser search
     decoded_subject = decode_subject(subject)
     if re.search(subject_pattern, decoded_subject):
         tenant_match = re.search(r"Tenant\s+(\S+)\s+terminó", body)
         if tenant_match:
-            return {"tenant": tenant_match.group(1), "status": "error"}
+            return {"tenant": tenant_match.group(1), "status": resolve_status(body)}
 
     return None
 
