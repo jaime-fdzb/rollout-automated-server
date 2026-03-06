@@ -8,6 +8,7 @@ services:
       - .env
     volumes:
       - ./data:/data
+      - ./ai/data:/ai_data
 
   watcher:
     build: .

@@ -101,7 +101,7 @@ def dashboard():
         onclick="
             this.disabled = true;
             this.textContent = 'Fetching…';
-            fetch('/sheet-data?sheet=mexico_migration_status&range=A1:C1000')
+            fetch('/sheet-data?sheet=migration_planer&range=A1:Q1201')
                 .then(r => r.json())
                 .then(d => {
                     this.textContent = 'Generate Data';

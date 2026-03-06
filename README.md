@@ -67,11 +67,11 @@ A helper script for common operations from your local machine. It starts the `ap
 Fetches a sheet range from Google Sheets and saves it as a Markdown file to `./data/sheet_data/`.
 
 ```bash
-# With defaults (sheet: mexico_migration_status, range: A1:C1000)
+# With defaults (sheet: migration_planer, range: A1:Q1201)
 ./rollout.sh sheet-data
 
 # Override sheet or range
-./rollout.sh sheet-data --sheet mexico_migration_status --range A1:D500
+./rollout.sh sheet-data --sheet migration_planer --range A1:D500
 ```
 
 Example output:
@@ -79,10 +79,10 @@ Example output:
 ```
 Server is not running — starting it now...
 Waiting for server to be ready........ ready.
-Fetching sheet 'mexico_migration_status' range 'A1:C1000'...
+Fetching sheet 'migration_planer' range 'A1:Q1201'...
 Done — 42 rows
-Container path : /data/sheet_data/mexico_migration_status.md
-Host path      : /home/user/rollout-automated-server/data/sheet_data/mexico_migration_status.md
+Container path : /data/sheet_data/migration_planer.md
+Host path      : /home/user/rollout-automated-server/data/sheet_data/migration_planer.md
 Stopping server...
 ```
 

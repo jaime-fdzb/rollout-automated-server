@@ -1,4 +1,11 @@
 .env
 
+# Docker volume data (owned by root, not committed)
 /data
+
+# Legacy path (no longer used)
 /sheet_data
+
+# Auto-generated sheet exports — refresh with ./rollout.sh sheet-data
+/ai/data/
+/ai/data/sheet_data/

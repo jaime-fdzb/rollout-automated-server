@@ -10,14 +10,14 @@ Usage: $(basename "$0") <command> [options]
 
 Commands:
   sheet-data          Fetch sheet data and save it as Markdown
-    --sheet NAME      Sheet tab name         (default: mexico_migration_status)
-    --range RANGE     A1-notation range      (default: A1:C1000)
+    --sheet NAME      Sheet tab name         (default: migration_planer)
+    --range RANGE     A1-notation range      (default: A1:Q1201)
 
   help                Show this help message
 
 Examples:
   $(basename "$0") sheet-data
-  $(basename "$0") sheet-data --sheet mexico_migration_status --range A1:D500
+  $(basename "$0") sheet-data --sheet migration_planer --range A1:D500
 EOF
 }
 
@@ -54,8 +54,8 @@ teardown() {
 }
 
 cmd_sheet_data() {
-  local sheet="mexico_migration_status"
-  local range="A1:C1000"
+  local sheet="migration_planer"
+  local range="A1:Q1201"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
