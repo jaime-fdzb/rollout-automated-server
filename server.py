@@ -2,6 +2,7 @@ import logging
 import os
 import sqlite3
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 from fastapi import FastAPI
@@ -59,7 +60,7 @@ def send_to_sheet(data: dict) -> None:
 @app.post("/webhook")
 def receive_event(event: Event):
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(ZoneInfo("America/Santiago")).isoformat()
 
     conn = sqlite3.connect(DB)
     c = conn.cursor()

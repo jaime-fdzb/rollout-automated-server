@@ -4,6 +4,7 @@ import re
 import requests
 from imapclient import IMAPClient
 import email
+from email.header import decode_header as _decode_header
 
 IMAP_SERVER = os.getenv("IMAP_SERVER")
 EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT")
@@ -12,7 +13,8 @@ WEBHOOK = os.getenv("WEBHOOK_URL")
 
 CHECK_FOLDER = "INBOX"
 
-pattern = r"Tenant Tenant (\S+) terminó su ejecución (.*)"
+body_pattern = r"Tenant Tenant (\S+) terminó su ejecución (.*)"
+subject_pattern = r"Descuadres en el saldo de vacaciones"
 
 last_uid = None
 
@@ -21,25 +23,34 @@ def log(msg):
     print(f"[MAIL WATCHER] {msg}", flush=True)
 
 
-def parse_email(body):
+def decode_subject(raw):
+    parts = _decode_header(raw)
+    decoded = []
+    for chunk, charset in parts:
+        if isinstance(chunk, bytes):
+            decoded.append(chunk.decode(charset or "utf-8", errors="ignore"))
+        else:
+            decoded.append(chunk)
+    return "".join(decoded)
 
-    m = re.search(pattern, body)
 
-    if not m:
-        return None
+def parse_email(subject, body):
 
-    tenant = m.group(1)
-    result = m.group(2)
+    # Primary: match on body
+    m = re.search(body_pattern, body)
 
-    status = "success"
+    if m:
+        status = "error" if "errores" in m.group(2) else "success"
+        return {"tenant": m.group(1), "status": status}
 
-    if "errores" in result:
-        status = "error"
+    # Fallback: detect via subject, extract tenant from body with a looser search
+    decoded_subject = decode_subject(subject)
+    if re.search(subject_pattern, decoded_subject):
+        tenant_match = re.search(r"Tenant\s+(\S+)\s+terminó", body)
+        if tenant_match:
+            return {"tenant": tenant_match.group(1), "status": "error"}
 
-    return {
-        "tenant": tenant,
-        "status": status
-    }
+    return None
 
 
 def send_webhook(data):
@@ -83,12 +94,14 @@ def process_new_messages(server):
 
             for part in msg.walk():
                 if part.get_content_type() == "text/plain":
-                    body = part.get_payload(decode=True).decode(errors="ignore")
+                    charset = part.get_content_charset() or "utf-8"
+                    body = part.get_payload(decode=True).decode(charset, errors="ignore")
 
         else:
-            body = msg.get_payload(decode=True).decode(errors="ignore")
+            charset = msg.get_content_charset() or "utf-8"
+            body = msg.get_payload(decode=True).decode(charset, errors="ignore")
 
-        parsed = parse_email(body)
+        parsed = parse_email(subject, body)
 
         if parsed:
             log(f"Parsed event → {parsed}")
