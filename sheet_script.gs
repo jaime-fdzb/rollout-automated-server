@@ -5,14 +5,15 @@ function doPost(e) {
 
   const data = JSON.parse(e.postData.contents);
 
-  sheet.appendRow([
-    data.tenant,
-    data.status,
-    data.timestamp
-  ]);
+  // Accept either a single event object or an array of events (batch).
+  const rows = Array.isArray(data) ? data : [data];
+
+  rows.forEach(function(row) {
+    sheet.appendRow([row.tenant, row.status, row.timestamp]);
+  });
 
   return ContentService
-    .createTextOutput(JSON.stringify({status:"ok"}))
+    .createTextOutput(JSON.stringify({status: "ok", count: rows.length}))
     .setMimeType(ContentService.MimeType.JSON);
 }
 

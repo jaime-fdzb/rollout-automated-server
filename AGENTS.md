@@ -50,7 +50,7 @@ The script starts the Docker server automatically if it is not running, and stop
 | `server.py` | FastAPI server — webhook receiver, dashboard, sheet-data endpoint |
 | `imap_watcher.py` | IMAP IDLE watcher — parses emails and posts to `/webhook` |
 | `sheet_script.gs` | Google Apps Script — `doPost` writes rows, `doGet` reads ranges |
-| `scripts/generate-rapanui-migration.py` | Generates Ruby mutation files for a given list of tenants |
+| `generate-rapanui-migration.py` | Generates Ruby mutation files for a given list of tenants |
 | `docker-compose.yaml` | Runs `app` (server) and `watcher` services |
 
 ---

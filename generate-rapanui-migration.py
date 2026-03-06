@@ -4,26 +4,26 @@ Genera scripts de mutación para migración de reasignación de vacaciones Méxi
 Crea archivos .rb y .yml, branch, commit, push y PR automáticamente.
 
 Uso con archivos (recomendado):
-  python3 scripts/generate-rapanui-migration.py -t <tenants.txt> -d <pr_description.md>
+  python3 generate-rapanui-migration.py -t <tenants.txt> -d <pr_description.md>
 
 Uso clásico (posicional):
-  python3 scripts/generate-rapanui-migration.py <nombre> <tenant1> <tenant2> ...
+  python3 generate-rapanui-migration.py <nombre> <tenant1> <tenant2> ...
 
 Opciones útiles:
   -r / --repo   Ruta al repositorio destino donde se crean los archivos de mutación.
                 Por defecto: ~/rapanui-v2
 
 Ejemplos:
-  python3 scripts/generate-rapanui-migration.py \\
+  python3 generate-rapanui-migration.py \\
       -t ai/data/next_batch_tenants.txt \\
       -d ai/data/next_batch_pr_description.md
 
-  python3 scripts/generate-rapanui-migration.py \\
+  python3 generate-rapanui-migration.py \\
       -t ai/data/next_batch_tenants.txt \\
       -d ai/data/next_batch_pr_description.md \\
       -r ~/projects/rapanui-v2
 
-  python3 scripts/generate-rapanui-migration.py \\
+  python3 generate-rapanui-migration.py \\
       migrar-reasignacion-mexico-prod-1 tenant1 tenant2 tenant3
 """
 
@@ -33,6 +33,7 @@ import re
 import subprocess
 import sys
 from datetime import date as date_type
+
 
 
 # ---------------------------------------------------------------------------
@@ -275,6 +276,10 @@ def main() -> None:
         run(gh_cmd, cwd=repo_root)
         print("PR creado exitosamente.")
 
+    # ---- Batch: mark tenants as 'migrando' --------------------------------
+    rollout_dir = os.path.dirname(os.path.abspath(__file__))
+    run(["./rollout.sh", "batch"], cwd=rollout_dir)
+    print("Tenants marked as 'migrando' in the sheet.")
 
 if __name__ == "__main__":
     main()

@@ -159,7 +159,7 @@ Markdown suitable for use as a pull request description. Include:
 After writing the two output files, run the migration script to create the branch, commit, and PR automatically:
 
 ```bash
-python3 scripts/generate-rapanui-migration.py \
+python3 generate-rapanui-migration.py \
     -t ai/data/next_batch_tenants.txt \
     -d ai/data/next_batch_pr_description.md
 ```

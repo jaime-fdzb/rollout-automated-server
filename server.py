@@ -23,6 +23,11 @@ class Event(BaseModel):
     status: str
 
 
+class BatchEvent(BaseModel):
+    tenants: list[str]
+    status: str = "migrando"
+
+
 def send_to_sheet(data: dict) -> None:
     if not GOOGLE_SCRIPT_URL:
         logger.warning("GOOGLE_SCRIPT_URL is not set, skipping sheet sync")
@@ -38,11 +43,47 @@ def send_to_sheet(data: dict) -> None:
         logger.error(f"Sheet sync failed: {e}")
 
 
+def send_batch_to_sheet(rows: list[dict]) -> None:
+    """Send multiple rows to the sheet in a single Apps Script call."""
+    if not GOOGLE_SCRIPT_URL:
+        logger.warning("GOOGLE_SCRIPT_URL is not set, skipping batch sheet sync")
+        return
+
+    try:
+        response = requests.post(GOOGLE_SCRIPT_URL, json=rows, timeout=30, allow_redirects=True)
+        response.raise_for_status()
+        logger.info(f"Batch sheet sync OK → {len(rows)} rows")
+    except requests.HTTPError as e:
+        logger.error(f"Batch sheet sync failed with HTTP error: {e}")
+    except requests.RequestException as e:
+        logger.error(f"Batch sheet sync failed: {e}")
+
+
 @app.post("/webhook")
 def receive_event(event: Event):
     now = datetime.now(ZoneInfo("America/Santiago")).isoformat()
     send_to_sheet({"tenant": event.tenant, "status": event.status, "timestamp": now})
     return {"stored": True}
+
+
+@app.post("/batch")
+def receive_batch(batch: BatchEvent):
+    """Mark multiple tenants with the same status in a single sheet call.
+
+    Typical use: flag the next migration batch as 'migrando' right after the
+    PR is created, before execution starts.
+
+    Body: {"tenants": ["tenant1", "tenant2", ...], "status": "migrando"}
+    """
+    if not batch.tenants:
+        raise HTTPException(status_code=422, detail="tenants list must not be empty")
+
+    now = datetime.now(ZoneInfo("America/Santiago")).isoformat()
+    rows = [{"tenant": t, "status": batch.status, "timestamp": now} for t in batch.tenants]
+    send_batch_to_sheet(rows)
+
+    logger.info(f"Batch received: {len(rows)} tenants with status='{batch.status}'")
+    return {"queued": len(rows), "status": batch.status, "timestamp": now}
 
 
 @app.get("/", response_class=HTMLResponse)
