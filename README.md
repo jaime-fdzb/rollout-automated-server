@@ -106,13 +106,10 @@ WEBHOOK_URL=http://app:8000/webhook
 # Deploy the script with "Execute as: Me" and "Who has access: Anyone".
 GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/<deployment-id>/exec
 
-# Path to the SQLite database file inside the container.
-# Mapped to ./data on the host via the docker-compose volume.
-DB_PATH=/data/events.db
-
 # Directory where fetched sheet data is saved as Markdown files inside the container.
-# Mapped to ./data on the host via the docker-compose volume.
-SHEET_DATA_DIR=/data/sheet_data
+# Mapped to ./ai/data/sheet_data on the host via the docker-compose volume.
+# Set automatically by docker-compose; override only when running outside Docker.
+SHEET_DATA_DIR=/ai_data/sheet_data
 
 # (Unused by current code — reserved for future polling interval control)
 CHECK_INTERVAL=60
