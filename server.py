@@ -25,7 +25,7 @@ class Event(BaseModel):
 
 class BatchEvent(BaseModel):
     tenants: list[str]
-    status: str = "migrando"
+    status: str = "migrating"
 
 
 def send_to_sheet(data: dict) -> None:
@@ -70,10 +70,10 @@ def receive_event(event: Event):
 def receive_batch(batch: BatchEvent):
     """Mark multiple tenants with the same status in a single sheet call.
 
-    Typical use: flag the next migration batch as 'migrando' right after the
+    Typical use: flag the next migration batch as 'migrating' right after the
     PR is created, before execution starts.
 
-    Body: {"tenants": ["tenant1", "tenant2", ...], "status": "migrando"}
+    Body: {"tenants": ["tenant1", "tenant2", ...], "status": "migrating"}
     """
     if not batch.tenants:
         raise HTTPException(status_code=422, detail="tenants list must not be empty")

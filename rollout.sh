@@ -16,7 +16,7 @@ Commands:
   batch               Mark a list of tenants with a given status in Google Sheets
     --tenants-file F  File with one tenant per line
                       (default: ai/data/next_batch_tenants.txt)
-    --status STATUS   Status to assign       (default: migrando)
+    --status STATUS   Status to assign       (default: migrating)
 
   help                Show this help message
 
@@ -25,7 +25,7 @@ Examples:
   $(basename "$0") sheet-data --sheet migration_planer --range A1:D500
 
   $(basename "$0") batch
-  $(basename "$0") batch --tenants-file ai/data/next_batch_tenants.txt --status migrando
+  $(basename "$0") batch --tenants-file ai/data/next_batch_tenants.txt --status migrating
 EOF
 }
 
@@ -88,7 +88,7 @@ cmd_sheet_data() {
 
 cmd_batch() {
   local tenants_file="$SCRIPT_DIR/ai/data/next_batch_tenants.txt"
-  local status="migrando"
+  local status="migrating"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in

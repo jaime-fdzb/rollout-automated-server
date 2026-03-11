@@ -276,10 +276,10 @@ def main() -> None:
         run(gh_cmd, cwd=repo_root)
         print("PR creado exitosamente.")
 
-    # ---- Batch: mark tenants as 'migrando' --------------------------------
+    # ---- Batch: mark tenants as 'migrating' --------------------------------
     rollout_dir = os.path.dirname(os.path.abspath(__file__))
     run(["./rollout.sh", "batch"], cwd=rollout_dir)
-    print("Tenants marked as 'migrando' in the sheet.")
+    print("Tenants marked as 'migrating' in the sheet.")
 
 if __name__ == "__main__":
     main()

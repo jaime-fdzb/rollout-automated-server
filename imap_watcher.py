@@ -20,6 +20,7 @@ STATUS_KEYWORDS = [
     ("forced", "forzadamente"),
     ("failed", "errores"),
     ("success", "exitosamente"),
+    ("skipped", "saltado"),
 ]
 
 
@@ -27,7 +28,7 @@ def resolve_status(text: str) -> str:
     for status, keyword in STATUS_KEYWORDS:
         if keyword in text:
             return status
-    return "desconocido"
+    return "unknown"
 
 last_uid = None
 
