@@ -40,28 +40,61 @@ from datetime import date as date_type
 # Generators
 # ---------------------------------------------------------------------------
 
-def snake_to_description(name: str) -> str:
+def name_to_what(name: str) -> str:
+    """All dashes → spaces, capitalised. Used in comment and what: field.
+    'migrar-vacaciones-mx-grupo-1-2026-03-06' → 'Migrar vacaciones mx grupo 1 2026 03 06'
+    """
     return name.replace("-", " ").capitalize()
 
 
-def generate_rb(description: str, tenants: list[str]) -> str:
+def name_to_mail_subject(name: str) -> str:
+    """[MX] prefix with the date portion keeping its dashes.
+    'migrar-vacaciones-mx-grupo-1-2026-03-06' → '[MX] Migrar vacaciones mx grupo 1 2026-03-06'
+    """
+    label = name.replace("-", " ").capitalize()
+    label = re.sub(r"(\d{4}) (\d{2}) (\d{2})$", r"\1-\2-\3", label)
+    return f"[MX] {label}"
+
+
+def generate_rb(name: str, tenants: list[str]) -> str:
+    what = name_to_what(name)
+    mail_subject = name_to_mail_subject(name)
     tenant_block = "\n".join(f"  {t}" for t in tenants)
     return f"""\
 #
-# {description}
+# {what}
 #
 
 TENANTS = %w[
 {tenant_block}
 ].freeze
 
+tenants_report = {{}}
+
 Admin::ConsoleAction.call(
   client_email: 'jmfernandez@buk.cl',
-  what: '{description}'
+  what: '{what}'
 ) do
   TENANTS.each do |tenant|
     Apartment::Tenant.switch!(tenant)
     Vacacion::Mexico::MigrationKillVacationConfigJob.perform_now
+  rescue Apartment::TenantNotFound, ActiveRecord::RecordNotFound
+    Rails.logger.error "Tenant #{{tenant}} no encontrado"
+    tenants_report[tenant] = "Tenant #{{tenant}} no encontrado"
+    next
+  end
+
+  if tenants_report.any?
+    mails_to_notify = %w[jmfernandez@buk.cl cbenavides@buk.cl]
+    mails_to_notify.each do |email|
+      EmployeesUnbalanceVacationDelivery.notify(
+        :notify_unbalance_vacation_employees,
+        email,
+        '{mail_subject}',
+        tenants_report.to_json,
+        format: :json
+      )
+    end
   end
 end
 """
@@ -231,7 +264,7 @@ def main() -> None:
     rb_path = os.path.join(month_dir, f"{name}.rb")
     yml_path = os.path.join(month_dir, f"{name}.yml")
 
-    description = snake_to_description(name)
+    description = name_to_what(name)
     branch_name = f"mutation/{name}"
     commit_msg = f"mutation: {name.replace('-', ' ')}"
 
@@ -246,7 +279,7 @@ def main() -> None:
 
     # ---- Write files ---------------------------------------------------
     with open(rb_path, "w") as f:
-        f.write(generate_rb(description, tenants))
+        f.write(generate_rb(name, tenants))
 
     with open(yml_path, "w") as f:
         f.write(generate_yml())
