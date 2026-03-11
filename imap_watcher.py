@@ -1,3 +1,4 @@
+import json
 import os
 import time
 import re
@@ -11,10 +12,17 @@ EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 WEBHOOK = os.getenv("WEBHOOK_URL")
 
+# Derived from WEBHOOK_URL: http://app:8000/webhook → http://app:8000/batch
+BATCH_URL = WEBHOOK.rsplit("/", 1)[0] + "/batch" if WEBHOOK else None
+
 CHECK_FOLDER = "INBOX"
 
+# Regular migration completion email
 body_pattern = r"Tenant Tenant (\S+) terminó su ejecución (.*)"
 subject_pattern = r"Descuadres en el saldo de vacaciones"
+
+# Vacation unbalances summary email (has a JSON attachment with inactive tenants)
+unbalances_body_pattern = r"Tenant \[MX\] Migrar vacaciones mx grupo"
 
 STATUS_KEYWORDS = [
     ("forced", "forzadamente"),
@@ -29,6 +37,7 @@ def resolve_status(text: str) -> str:
         if keyword in text:
             return status
     return "unknown"
+
 
 last_uid = None
 
@@ -67,23 +76,28 @@ def parse_email(subject, body):
 
 
 def send_webhook(data):
-
     try:
         r = requests.post(WEBHOOK, json=data, timeout=5)
         log(f"Webhook sent → {data} status={r.status_code}")
-
     except Exception as e:
         log(f"Webhook error: {e}")
+
+
+def send_batch_webhook(tenants: list, status: str):
+    if not BATCH_URL:
+        log("WEBHOOK_URL not set, skipping batch")
+        return
+    try:
+        r = requests.post(BATCH_URL, json={"tenants": tenants, "status": status}, timeout=30)
+        log(f"Batch webhook sent → {len(tenants)} tenants as '{status}' status={r.status_code}")
+    except Exception as e:
+        log(f"Batch webhook error: {e}")
 
 
 def process_new_messages(server):
 
     global last_uid
 
-    # Fetch all UIDs (integers only — fast, no email content downloaded)
-    # and filter in Python. Avoids Gmail's UID X:* range quirk where
-    # searching "UID 7921:*" with no new messages returns the last
-    # existing UID instead of an empty result.
     all_uids = server.search(["ALL"])
     uids = [uid for uid in all_uids if last_uid is None or uid > last_uid]
 
@@ -102,25 +116,42 @@ def process_new_messages(server):
         log(f"📧 Processing email UID={uid} from={sender!r} subject={subject!r}")
 
         body = ""
+        json_attachment = None
 
         if msg.is_multipart():
-
             for part in msg.walk():
-                if part.get_content_type() == "text/plain":
+                ct = part.get_content_type()
+                filename = part.get_filename() or ""
+
+                if ct == "text/plain":
                     charset = part.get_content_charset() or "utf-8"
                     body = part.get_payload(decode=True).decode(charset, errors="ignore")
 
+                elif filename.endswith(".json"):
+                    raw = part.get_payload(decode=True)
+                    if raw:
+                        try:
+                            json_attachment = json.loads(raw.decode("utf-8", errors="ignore"))
+                            log(f"JSON attachment found: {filename!r} ({len(json_attachment)} entries)")
+                        except json.JSONDecodeError:
+                            log(f"Failed to parse JSON attachment: {filename!r}")
         else:
             charset = msg.get_content_charset() or "utf-8"
             body = msg.get_payload(decode=True).decode(charset, errors="ignore")
 
-        parsed = parse_email(subject, body)
+        # Vacation unbalances summary: JSON attachment + matching body pattern
+        if json_attachment is not None and re.search(unbalances_body_pattern, body):
+            tenants = list(json_attachment.keys())
+            log(f"Vacation unbalances email — marking {len(tenants)} tenants as 'no encontrado'")
+            send_batch_webhook(tenants, "not_found")
 
-        if parsed:
-            log(f"Parsed event → {parsed}")
-            send_webhook(parsed)
         else:
-            log(f"Email did not match pattern, skipping webhook")
+            parsed = parse_email(subject, body)
+            if parsed:
+                log(f"Parsed event → {parsed}")
+                send_webhook(parsed)
+            else:
+                log(f"Email did not match pattern, skipping webhook")
 
         last_uid = uid
 
