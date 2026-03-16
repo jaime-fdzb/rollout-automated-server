@@ -65,15 +65,18 @@ For each tenant in the active group:
 |-------|---------|
 | `success` | Done ✅ |
 | `forced` | Done but flag for manual review ⚠️ |
+| `not_found` | Done but tenant is inactive |
+| `skipped` | Done but tenant has to be skipped |
 | `failed` | Needs retry or investigation ❌ |
-| `desconocido` | Unknown — treat as not run |
+| `unknown` | Unknown — treat as not run |
 | not in status file | Not yet migrated |
 
 Compute:
+
 - **total** = number of tenants in the group
-- **done** = tenants with `success` or `forced`
+- **done** = tenants with `success`, `forced`, `not_found` or `skipped`
 - **failed** = tenants with `failed`
-- **pending** = tenants not yet run or `desconocido`
+- **pending** = tenants not yet run or `unknown`
 - **success_rate** = done / (done + failed), ignoring pending
 
 ### Step 5 — Decide whether to advance
@@ -94,7 +97,7 @@ From the active (or newly advanced) group, pick up to **batch_size** tenants tha
 
 Always respond with this structure:
 
-```
+```text
 ## Rollout recommendation — <date>
 
 **Active group:** Group N — <name>
@@ -123,7 +126,7 @@ After producing the recommendation, write two files:
 
 One tenant slug per line, no extra formatting. This file is consumed directly by migration scripts.
 
-```
+```text
 tenant_a
 tenant_b
 tenant_c
@@ -165,6 +168,7 @@ python3 generate-rapanui-migration.py \
 ```
 
 The script will:
+
 1. Parse the PR description to extract the migration name, batch date, and group number
 2. Create a branch `mutation/migrar-vacaciones-mx-grupo-<N>-<date>` in `~/rapanui-v2`
 3. Write the `.rb` and `.yml` mutation files

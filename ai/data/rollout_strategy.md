@@ -109,6 +109,7 @@ Tenants listed with errors that must be retried when told to.
 
 ## Current State
 
-- **Active group:** Group 1
-- **Last batch run:** —
-- **Observations:** —
+- **Active group:** Group 1 — Demos and test (Fase 0 — Interno)
+- **Last batch run:** 2026-03-15 — PR bukhr/rapanui-v2#17535 (35 tenants: 21 retries + 14 pending)
+- **Group 1 progress:** 44/79 done pre-batch (67.7% success rate — below 95% threshold)
+- **Observations:** 21 failed tenants in retry. Group cannot advance to Group 2 until success rate ≥ 95% with 0 failed. Next action: wait for PR #17535 results, refresh data, re-run planner.
