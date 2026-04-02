@@ -9,7 +9,7 @@ Migrates Mexico tenants through `Vacacion::Mexico::MigrationKillVacationConfigJo
 ## Key commands
 
 ```bash
-./rollout.sh sheet-data          # Refresh tenant data from Excel source (ALWAYS run before analysis)
+./rollout.sh sheet-data          # Refresh tenant data from Google Sheets (ALWAYS run before analysis)
 python3 generate-rapanui-migration.py \
     -t ai/data/next_batch_tenants.txt \
     -d ai/data/next_batch_pr_description.md   # Create branch + commit + PR in rapanui-v2

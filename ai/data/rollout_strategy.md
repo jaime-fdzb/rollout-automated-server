@@ -110,6 +110,6 @@ Tenants listed with errors that must be retried when told to.
 ## Current State
 
 - **Active group:** Group 1 — Demos and test (Fase 0 — Interno)
-- **Last batch run:** 2026-03-15 — PR bukhr/rapanui-v2#17535 (35 tenants: 21 retries + 14 pending)
-- **Group 1 progress:** 44/79 done pre-batch (67.7% success rate — below 95% threshold)
-- **Observations:** 21 failed tenants in retry. Group cannot advance to Group 2 until success rate ≥ 95% with 0 failed. Next action: wait for PR #17535 results, refresh data, re-run planner.
+- **Last batch run:** 2026-04-02 — PR bukhr/rapanui-v2#18241 (34 tenants: third attempt — re-run of PR #18098/2026-03-31 and PR #18007/2026-03-27, both of which failed to execute the migration job)
+- **Group 1 progress as of 2026-04-02:** 45/79 done (success/skipped/not_found), 34 migrating, 0 failed, 0 pending
+- **Observations:** `clientes15-demo` was excluded from this batch due to corrupted employee field data (status is `skipped` in the sheet from an earlier run). All other 34 tenants from the previous failed PRs are queued. Next action: wait for PR #18241 results, refresh sheet, then evaluate advancement to Group 2.

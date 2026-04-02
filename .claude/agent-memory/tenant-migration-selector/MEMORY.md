@@ -16,6 +16,7 @@ Defined in SKILL.md: `success` = Done, `forced` = Done but needs manual review, 
 Additional statuses observed in the wild (not in SKILL.md):
 - `skipped` = Migration intentionally skipped — all affected tenants have 0 employees/assignments. Treat as done (equivalent to success for advancement calculation).
 - `not_found` = Tenant not found on the platform. Treat as **Done** (inactive tenant) — do NOT include in next batch. Counts toward `done` in the success rate calculation. May mean tenant was renamed or decommissioned; worth flagging for investigation but not a blocker.
+- `migrating` = PR has been created and tenants are queued, but job has not completed yet. Set automatically by `generate-rapanui-migration.py` via `./rollout.sh batch` after PR creation. Treat as **in-flight** — do NOT include in the next batch and do NOT count as done or failed. If all remaining tenants in a group are `migrating`, there is nothing left to batch: wait for PR results and sheet refresh.
 
 ## Group 1 Demo Tenant Identification
 
@@ -42,9 +43,11 @@ Notable large tenants with `Es demo? = TEST` (high employee count, need careful 
 
 - Batch size: 50 tenants per execution
 - Advancement threshold: >= 95% success rate, 0 failed tenants, forced tenants reviewed
-- Active group as of 2026-03-11: Group 1 (Demos and test — Fase 0)
+- Active group as of 2026-03-27: Group 1 (Demos and test — Fase 0)
 - Group 1: 79 tenants (`Es demo? = True`)
-- Group 1 progress as of 2026-03-11: 44 done (28 success + 9 skipped + 7 not_found), 21 failed, 14 pending — 67.7% success rate (44/65)
+- Group 1 progress as of 2026-04-02 (sheet refresh): 45 done, 34 migrating, 0 failed, 0 pending — all Group 1 tenants are done or in-flight; waiting for PR #18241 to complete before advancing to Group 2
+- Last batch: 2026-04-02 — PR bukhr/rapanui-v2#18241 (34 tenants: third attempt re-run after PR #18007 and #18098 both failed to execute the migration job)
+- clientes15-demo: status `skipped` (processed before PR #18098); excluded from 2026-04-02 batch due to corrupted employee field data — do not include in future batches without resolving the data issue
 
 ## Prioritization Logic (from rollout_strategy.md)
 
@@ -61,3 +64,11 @@ When the group has not yet reached the advancement threshold:
 - Include all failed tenants next (for retry), sorted by priority. NOT not_found — those are done.
 - If combined count <= batch_size (50), include all in one batch.
 - Do not skip failed tenants — they must be retried before the group can advance.
+
+### Re-run batches (failed PR execution)
+
+When a PR failed to execute its migration job, the affected tenants remain in `migrating` status after a sheet refresh. In this case:
+- Select all tenants with `migrating` status in the active group.
+- Apply any manual exclusions the user specifies (e.g., a tenant with corrupted data).
+- Verify each excluded tenant's actual current status in the sheet before treating the exclusion as "already done" — a tenant might show `skipped`/`success` if it was processed by a prior batch, even if the user thinks it was in the failed PR.
+- Document exclusions prominently in the PR description with the reason.

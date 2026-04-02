@@ -43,7 +43,7 @@ Before any analysis, always fetch the latest sheet data:
 ./rollout.sh sheet-data
 ```
 
-This updates `ai/data/sheet_data/migration_planer.md` with current tenant statuses from the Excel source. Do not skip this step — stale data will produce incorrect batch recommendations.
+This updates `ai/data/sheet_data/migration_planer.md` with current tenant statuses from Google Sheets. Do not skip this step — stale data will produce incorrect batch recommendations.
 
 ### Step 1 — Build the status map
 
@@ -68,8 +68,8 @@ For each tenant in the active group:
 | `not_found` | Done but tenant is inactive |
 | `skipped` | Done but tenant has to be skipped |
 | `failed` | Needs retry or investigation ❌ |
-| `unknown` | Unknown — treat as not run |
-| not in status file | Not yet migrated |
+| `unknown` / `desconocido` | Unknown — treat as not run |
+| not in status file / `null` | Not yet migrated |
 
 Compute:
 
@@ -89,7 +89,7 @@ Apply the criteria from `rollout_strategy.md`:
 
 ### Step 6 — Select the next batch
 
-From the active (or newly advanced) group, pick up to **batch_size** tenants that are still pending (not `success`, not `forced`), excluding any tenants in the Exclusions list.
+From the active (or newly advanced) group, pick up to **batch_size** tenants that are still pending — excluding any tenant already done (`success`, `forced`, `not_found`, `skipped`) and any tenant in the Exclusions list.
 
 ---
 
