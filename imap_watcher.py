@@ -29,6 +29,7 @@ STATUS_KEYWORDS = [
     ("failed", "errores"),
     ("success", "exitosamente"),
     ("skipped", "saltado"),
+    ("done", "ya migrado"),
 ]
 
 
