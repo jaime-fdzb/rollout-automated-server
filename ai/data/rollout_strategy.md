@@ -109,7 +109,23 @@ Tenants listed with errors that must be retried when told to.
 
 ## Current State
 
-- **Active group:** Group 1 — Demos and test (Fase 0 — Interno)
-- **Last batch run:** 2026-04-02 — PR bukhr/rapanui-v2#18241 (34 tenants: third attempt — re-run of PR #18098/2026-03-31 and PR #18007/2026-03-27, both of which failed to execute the migration job)
-- **Group 1 progress as of 2026-04-02:** 45/79 done (success/skipped/not_found), 34 migrating, 0 failed, 0 pending
-- **Observations:** `clientes15-demo` was excluded from this batch due to corrupted employee field data (status is `skipped` in the sheet from an earlier run). All other 34 tenants from the previous failed PRs are queued. Next action: wait for PR #18241 results, refresh sheet, then evaluate advancement to Group 2.
+- **Active group:** Group 4 — Large/Complex (Fase 3 — Clientes con configuraciones complejas)
+- **Last batch run:** 2026-04-20 — Extra batch for remaining Group 1 retries + TEST tenants (PR #19046)
+- **Group 1 progress as of 2026-04-20:** 76/79 done (sac-demo, demosales, lfmata-demo succeeded), 3 retrying in PR #19046 (didi-demo, democlientes, demobukvideomx-demo)
+- **Group 2 progress as of 2026-04-13:** 136/136 done (100% complete)
+- **Group 3 progress as of 2026-04-20:** 719/724 done (99.4%), 5 migrating in flight (PR #19027 retry), 0 failed, 0 pending — advancement threshold met
+- **Group 4 progress as of 2026-04-20 (post all batches):** 383 migrating (all pending + failed queued), 2 done, 0 pending, 0 failed
+- **Group 4 PRs (all in-flight):**
+  - Batch 1 — PR #19031: 50 tenants, ant=1, emp 3–46
+  - Batch 2 — PR #19033: 50 tenants, ant=1, emp 47–102
+  - Batch 3 — PR #19040: 50 tenants, ant=1, emp 19–4996 (includes dimpack retry)
+  - Batch 4 — PR #19041: 50 tenants, ant=2, emp 6–131
+  - Batch 5 — PR #19042: 50 tenants, ant=2–3, emp 13–1842
+  - Batch 6 — PR #19043: 50 tenants, ant=3–5, emp 21–1078
+  - Batch 7 — PR #19044: 50 tenants, ant=5–14, emp 20–2329
+  - Batch 8 — PR #19045: 33 tenants, ant=15–89, emp 24–1630 (FINAL GROUP 4 BATCH)
+- **Extra batch — PR #19046:** 9 tenants — 3 Group 1 retries (didi-demo, democlientes, demobukvideomx-demo) + 6 TEST tenants (pruebashagalo-test, whitestackmexico, valdezbaluarte-test, rappicardtest, buktest, difarvet-test)
+- **Observations:** All Group 4 tenants queued. Extra batch covers remaining Group 1 failures and all TEST (Es demo?=TEST) tenants that had never been migrated. After PR #19046 completes, the only remaining items are the 5 Group 3 tenants in PR #19027. Next action: wait for all PRs to complete, refresh sheet, verify advancement thresholds.
+- **Pending activation batches (2026-04-21):** 71 additional tenants with `activado: false` not previously queued, split into 2 batches:
+  - Batch 1 — PR #19193: 50 tenants (13 known-zero-complexity + 37 new tenants not in sheet)
+  - Batch 2 — PR #19194: 21 tenants (15 new tenants + 6 known: demopartners, schwabemexico-test, wireco, sodexopruebasint, payrollsdxmexico-test2, payrollsdxmexico-test)
